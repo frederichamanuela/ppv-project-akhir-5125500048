@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FOKUS</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body{background:var(--bg);margin:0;padding:18px}
+    .t-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:1100px;margin:0 auto}
+    .t-card{background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 1px 2px rgba(45,38,84,.05),0 8px 24px rgba(45,38,84,.06);padding:16px;display:grid;gap:10px;justify-items:center}
+    .t-card h2{margin:0;font-size:18px}
+    .t-card.run{border-color:var(--blue)}
+    .t-ring{position:relative;width:190px;height:190px;cursor:pointer}
+    .t-ring svg{transform:rotate(-90deg)}
+    .ring-bg{fill:none;stroke:rgba(45,38,84,.14);stroke-width:14}
+    .ring-fg{fill:none;stroke:var(--blue);stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset .5s linear}
+    .t-num{position:absolute;inset:0;display:grid;place-content:center;font-family:var(--font-head);font-size:30px;font-weight:800}
+    .t-row{display:flex;gap:8px;width:100%}
+    .t-msg{font-size:11px;font-weight:800;color:var(--blue);min-height:16px;margin:0;text-align:center}
+    .t-modal{position:fixed;inset:0;background:rgba(45,38,84,.72);display:grid;place-content:center;z-index:50;padding:20px}
+    .t-modal.hidden{display:none}
+    .t-pop{background:var(--paper);border:1px solid var(--line);border-radius:24px;box-shadow:0 12px 48px rgba(45,38,84,.22);padding:32px 40px;text-align:center;display:grid;gap:12px;justify-items:center;max-width:92vw}
+    .t-pop h2{margin:0;font-size:22px}
+    .t-big{font-family:var(--font-head);font-size:clamp(48px,10vw,84px);font-weight:800}
+    .t-sub{font-size:14px;font-weight:800;color:var(--blue);min-height:20px;margin:0}
+    .t-pop .t-row{max-width:340px}
+    .t-set{display:flex;gap:8px;align-items:center;font-weight:800}
+    .t-set input{width:90px;text-align:center;margin-top:0}
+  </style>
+</head>
+<body>
+  <div class="t-grid" id="tGrid"></div>
+  <div class="t-modal hidden" id="tModal" role="dialog" aria-label="TIMER BERJALAN">
+    <div class="t-pop">
+      <h2 id="mLabel">TIMER</h2>
+      <div class="t-big" id="mTime">00:00:00</div>
+      <p class="t-sub" id="mStatus"></p>
+      <div class="t-row">
+        <button class="btn-mid" id="mToggle">JEDA</button>
+        <button class="btn-mid ghost" id="mClose">TUTUP</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const pad = (n) => String(n).padStart(2, "0");
+    const C = 2 * Math.PI * 84;
+    const timers = [];
+    let actx = null, shown = null;
+    function fmt(s) {
+      return pad(Math.floor(s / 3600)) + ":" + pad(Math.floor(s % 3600 / 60)) + ":" + pad(s % 60);
+    }
+    function beep() {
+      // ASET AUDIO DULU, OSILATOR JADI CADANGAN
+      try {
+        const a = new Audio("assets/selesai.wav");
+        a.play().catch(osilator);
+        return;
+      } catch (e) { osilator(); }
+    }
+    function osilator() {
+      try {
+        actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+        [0, 0.35, 0.7].forEach(d => {
+          const o = actx.createOscillator(), g = actx.createGain();
+          o.connect(g); g.connect(actx.destination);
+          o.frequency.value = 880;
+          o.start(actx.currentTime + d);
+          o.stop(actx.currentTime + d + 0.25);
+        });
+      } catch (e) {}
+    }
+    function paintTitle() {
+      const run = timers.find(t => t.int || t.overInt);
+      document.title = run ? fmt(run.left) + " FOKUS" : "FOKUS";
+    }
+    function openModal(t) {
+      shown = t;
+      $("mLabel").textContent = t.nama;
+      paintModal();
+      $("tModal").classList.remove("hidden");
+    }
+    function paintModal() {
+      if (!shown) return;
+      $("mTime").textContent = shown.overSec > 0 ? "+" + fmt(shown.overSec) : fmt(shown.left);
+      $("mStatus").textContent = shown.overSec > 0 ? "WAKTU HABIS. LEMBUR JALAN." : (shown.int ? "JALAN. FOKUS." : "DIJEDA.");
+      $("mToggle").textContent = (shown.int || shown.overInt) ? "JEDA" : "LANJUT";
+    }
+    $("mClose").addEventListener("click", () => { $("tModal").classList.add("hidden"); shown = null; });
+    $("mToggle").addEventListener("click", () => { if (shown) shown.toggle(); });
+    function buatKartu(min, nama, pakaiInput) {
+      const t = { min, nama, total: min * 60, left: min * 60, endAt: 0, int: null, overInt: null, overSec: 0, msg: "" };
+      const card = document.createElement("div");
+      card.className = "t-card";
+      const h = document.createElement("h2");
+      h.textContent = nama;
+      const ring = document.createElement("div");
+      ring.className = "t-ring";
+      ring.title = "BUKA BESAR";
+      ring.innerHTML =
+        '<svg viewBox="0 0 200 200" width="190" height="190">' +
+        '<circle class="ring-bg" cx="100" cy="100" r="84"/>' +
+        '<circle class="ring-fg" cx="100" cy="100" r="84" stroke-dasharray="' + C + '" stroke-dashoffset="0"/>' +
+        "</svg>";
+      const num = document.createElement("div");
+      num.className = "t-num";
+      ring.appendChild(num);
+      const row = document.createElement("div");
+      row.className = "t-row";
+      const go = document.createElement("button");
+      go.className = "btn-mid";
+      const re = document.createElement("button");
+      re.className = "btn-mid ghost";
+      re.textContent = "RESET";
+      const msg = document.createElement("p");
+      msg.className = "t-msg";
+      row.appendChild(go); row.appendChild(re);
+      card.appendChild(h); card.appendChild(ring);
+      let kotak = null;
+      if (pakaiInput) {
+        const set = document.createElement("div");
+        set.className = "t-set";
+        kotak = document.createElement("input");
+        kotak.type = "number"; kotak.min = "1"; kotak.max = "180"; kotak.value = min;
+        kotak.setAttribute("aria-label", "DURASI MENIT");
+        const lab = document.createElement("span");
+        lab.textContent = "MENIT";
+        set.appendChild(kotak); set.appendChild(lab);
+        card.appendChild(set);
+      }
+      card.appendChild(row); card.appendChild(msg);
+      $("tGrid").appendChild(card);
+      const fg = ring.querySelector(".ring-fg");
+      t.paint = function () {
+        num.textContent = t.overSec > 0 ? "+" + fmt(t.overSec) : fmt(t.left);
+        fg.style.strokeDashoffset = C * (1 - t.left / t.total);
+        go.textContent = (t.int || t.overInt) ? "JEDA" : "MULAI";
+        card.classList.toggle("run", !!(t.int || t.overInt));
+        msg.textContent = t.overSec > 0 ? "LEWAT " + fmt(t.overSec) + "." : (t.msg || "");
+        if (shown === t) paintModal();
+        paintTitle();
+      };
+      t.toggle = function () {
+        if (t.int || t.overInt) {
+          clearInterval(t.int); clearInterval(t.overInt);
+          t.int = null; t.overInt = null;
+          t.msg = t.overSec > 0 ? "" : "DIJEDA DI " + fmt(t.left) + ".";
+        } else {
+          if (t.left <= 0 && t.overSec === 0) t.left = t.total;
+          if (t.left > 0) {
+            t.endAt = Date.now() + t.left * 1000;
+            t.int = setInterval(tick, 500);
+          } else {
+            t.overInt = setInterval(over, 1000);
+          }
+          t.msg = "JALAN. FOKUS.";
+        }
+        t.paint();
+      };
+      function tick() {
+        t.left = Math.max(0, Math.round((t.endAt - Date.now()) / 1000));
+        if (t.left <= 0) {
+          clearInterval(t.int); t.int = null;
+          beep();
+          t.overInt = setInterval(over, 1000);
+        }
+        t.paint();
+      }
+      function over() {
+        t.overSec++;
+        t.paint();
+      }
+      go.addEventListener("click", () => {
+        if (kotak && !t.int && !t.overInt && t.overSec === 0 && t.left === t.total) {
+          const v = parseInt(kotak.value, 10);
+          if (!(v >= 1 && v <= 180)) {
+            t.msg = "";
+            msg.textContent = "ISI 1-180 MENIT.";
+            return;
+          }
+          t.total = t.left = v * 60;
+          h.textContent = v + " MENIT (CUSTOM)";
+        }
+        t.toggle(); if (t.int || t.overInt) openModal(t);
+      });
+      re.addEventListener("click", () => {
+        clearInterval(t.int); clearInterval(t.overInt);
+        t.int = null; t.overInt = null;
+        if (kotak) {
+          const v = parseInt(kotak.value, 10);
+          t.total = t.left = (v >= 1 && v <= 180) ? v * 60 : t.total;
+        } else {
+          t.left = t.total;
+        }
+        t.overSec = 0; t.msg = "";
+        t.paint();
+      });
+      ring.addEventListener("click", () => openModal(t));
+      timers.push(t);
+      t.paint();
+    }
+    [15, 25, 30, 45, 60].forEach(min => buatKartu(min, min + " MENIT"));
+    buatKartu(40, "CUSTOM", true);
+  </script>
+</body>
+</html>

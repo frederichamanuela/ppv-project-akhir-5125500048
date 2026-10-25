@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TUGASIDE: TRACKER TUGAS</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="preloader">
+    <div class="pre-logo">TUGASIDE<span>.</span></div>
+    <div class="pre-bar"><div id="preFill"></div></div>
+    <p id="preText">MEMUAT…</p>
+  </div>
+
+  <div class="shell">
+    <nav class="rail" aria-label="NAVIGASI">
+      <button data-view="home" class="active">BERANDA</button>
+      <button data-view="tugas">TUGAS</button>
+      <button data-view="notes">NOTES</button>
+      <button data-view="board">BOARD</button>
+      <button data-view="focus">FOKUS</button>
+    </nav>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="brand"><img src="assets/logo.svg" alt="LOGO TUGASIDE" class="brand-logo" onerror="this.remove()" /><span class="brand-text"><span class="logo">TUGASIDE</span><span class="logo-sub">TRACKER TUGAS MAHASISWA</span></span></div>
+        <div class="clock" title="JAM SEKARANG"><b id="clockTime">00:00:00</b><span id="clockDate">-</span></div>
+        <div class="profile"><span class="avatar">F</span><span class="who"><b>FREDERICHA</b><small>5125500048</small></span></div>
+      </header>
+
+      <div class="content">
+        <!-- BERANDA -->
+        <div class="view" id="view-home">
+          <div class="cols">
+            <aside class="side">
+              <section class="card">
+                <div class="cal-head">
+                  <h2 id="calTitle">BULAN</h2>
+                  <div class="cal-nav">
+                    <button id="calPrev" title="BULAN LALU">‹</button>
+                    <button id="calToday" title="HARI INI">•</button>
+                    <button id="calNext" title="BULAN DEPAN">›</button>
+                  </div>
+                </div>
+                <div class="cal-grid cal-dow"><span>S</span><span>S</span><span>R</span><span>K</span><span>J</span><span>S</span><span>M</span></div>
+                <div class="cal-grid" id="calGrid"></div>
+                <p class="cap">KLIK TANGGAL BUAT ISI DEADLINE. TITIK = ADA DEADLINE.</p>
+              </section>
+              <section class="card">
+                <h2>PENGINGAT</h2>
+                <p class="cap">URUT DEADLINE TERDEKAT. YANG SUDAH DICENTANG NGGAK MUNCUL.</p>
+                <ul class="remind-list" id="remindList"></ul>
+              </section>
+            </aside>
+            <section class="card" id="jadwal">
+              <div class="week-head">
+                <h2 id="weekTitle">MINGGU INI</h2>
+                <span class="cap" id="tlDayLabel"></span>
+              </div>
+              <div class="week-strip" id="weekStrip"></div>
+              <ul id="tlTugas" class="tl-tugas"></ul>
+              <div class="tl" id="timeline"></div>
+            </section>
+          </div>
+        </div>
+
+        <!-- TUGAS -->
+        <div class="view hidden" id="view-tugas">
+          <div class="statsbar">
+            <div class="pill">TOTAL <b id="statTotal">0</b></div>
+            <div class="pill">SELESAI <b id="statDone">0</b></div>
+            <div class="pill">AKTIF <b id="statActive">0</b></div>
+          </div>
+          <section class="card" id="tambah">
+            <h2>TAMBAH TUGAS</h2>
+            <form id="taskForm" novalidate>
+              <label>NAMA TUGAS <span class="count" id="nameCount">0/60</span>
+                <input type="text" id="inName" placeholder="CONTOH: LAPORAN PRAKTIKUM ANIMASI 2D" maxlength="60" autocomplete="off" />
+                <small class="err" id="errName"></small>
+              </label>
+              <label>MATA KULIAH
+                <select id="inMatkul">
+                  <option value="">PILIH MATA KULIAH</option>
+                  <option>PRAKTIKUM ANIMASI 2D</option>
+                  <option>ANIMASI 2D</option>
+                  <option>SISTEM PEMANCAR</option>
+                  <option>PRAKTIKUM SISTEM PEMANCAR</option>
+                  <option>WORKSHOP UI/UX</option>
+                  <option>PEMROGRAMAN VISUAL</option>
+                  <option>JURNALISTIK</option>
+                  <option>PRAKTIKUM PEMROGRAMAN VISUAL</option>
+                  <option>JARINGAN KOMPUTER</option>
+                  <option>PRAKTIKUM JARINGAN KOMPUTER</option>
+                  <option>TEKNIK PENYIARAN</option>
+                  <option>PRODUKSI KONTEN DIGITAL</option>
+                  <option>LAINNYA</option>
+                </select>
+                <small class="err" id="errMatkul"></small>
+              </label>
+              <div class="row2">
+                <label>DEADLINE
+                  <input type="date" id="inDeadline" />
+                  <small class="err" id="errDeadline"></small>
+                </label>
+                <label>PRIORITAS
+                  <select id="inPrioritas">
+                    <option value="URGENT">URGENT</option>
+                    <option value="SEMI URGENT">SEMI URGENT</option>
+                    <option value="NORMAL" selected>NORMAL</option>
+                  </select>
+                </label>
+              </div>
+              <label>KETERANGAN (OPSIONAL)
+                <textarea id="inDesc" rows="2" maxlength="200" placeholder="CONTOH: KUMPUL PDF + LINK FIGMA"></textarea>
+              </label>
+              <button type="submit" class="btn-go" id="btnSave">TAMBAH TUGAS</button>
+            </form>
+          </section>
+
+          <section class="card" id="daftar">
+            <div class="list-head">
+              <h2>DAFTAR TUGAS</h2>
+              <select id="filterStatus">
+                <option value="semua">SEMUA</option>
+                <option value="aktif">AKTIF</option>
+                <option value="selesai">SELESAI</option>
+              </select>
+            </div>
+            <div id="loading" class="loading hidden" aria-live="polite"><div class="spinner" aria-hidden="true"></div><p>MEMUAT DATA…</p></div>
+            <div id="empty" class="empty hidden">
+              <img src="assets/kosong.svg" alt="ILUSTRASI BELUM ADA DATA" class="empty-img" onerror="this.remove()" />
+              <div class="empty-box"><div class="empty-line"></div><div class="empty-line short"></div></div>
+              <h3>BELUM ADA TUGAS.</h3>
+              <p>ISI FORM DI ATAS UNTUK MEMULAI.</p>
+            </div>
+            <ul id="taskList" class="task-list"></ul>
+          </section>
+        </div>
+
+        <!-- NOTES ALA APPLE NOTES -->
+        <div class="view hidden" id="view-notes">
+          <section class="card">
+            <div class="notes-bar">
+              <h2>NOTES</h2>
+              <span class="notes-actions">
+                <button class="btn-mid" id="noteAdd">BARU</button>
+                <button class="btn-mid ghost" id="noteDel">HAPUS</button>
+              </span>
+            </div>
+            <div class="notes-cols">
+              <ul id="noteList" class="note-list"></ul>
+              <div class="note-editor">
+                <div id="noteEmpty" class="empty press" tabindex="0" role="button" aria-label="BUAT CATATAN BARU">
+                  <img src="assets/kosong.svg" alt="ILUSTRASI BELUM ADA DATA" class="empty-img" onerror="this.remove()" />
+                  <div class="empty-box"><div class="empty-line"></div><div class="empty-line short"></div></div>
+                  <h3>TIDAK ADA CATATAN DIPILIH.</h3>
+                  <p>TEKAN BARU ATAU PILIH DARI DAFTAR.</p>
+                </div>
+                <div id="noteFields" class="hidden">
+                  <input type="text" id="noteTitle" placeholder="JUDUL" maxlength="50" autocomplete="off" />
+                  <textarea id="noteBody" rows="10" placeholder="MULAI MENGETIK…" maxlength="2000"></textarea>
+                  <div class="note-foot">
+                    <span class="cap" id="noteSaved">BELUM ADA PERUBAHAN.</span>
+                    <button class="btn-mid" id="noteDone">SELESAI</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- WHITEBOARD SENDIRI -->
+        <div class="view hidden" id="view-board">
+          <section class="card">
+            <div class="list-head">
+              <h2>WHITEBOARD</h2>
+              <button class="btn-mid auto" id="boardClear">HAPUS SEMUA</button>
+            </div>
+            <div class="draw-bar" role="toolbar" aria-label="ALAT BRAINSTORMING">
+              <button class="chip active" data-tool="hl">STABILO</button>
+              <button class="chip" data-tool="text">TEKS</button>
+              <button class="chip" data-tool="sticky">STICKY</button>
+              <div class="swatches" role="group" aria-label="WARNA STABILO">
+                <button class="sw" data-hl="234,179,8" title="STABILO KUNING" aria-label="STABILO KUNING"></button>
+                <button class="sw" data-hl="34,197,94" title="STABILO HIJAU" aria-label="STABILO HIJAU"></button>
+                <button class="sw" data-hl="236,72,153" title="STABILO PINK" aria-label="STABILO PINK"></button>
+                <button class="sw active" data-hl="58,78,251" title="STABILO BIRU" aria-label="STABILO BIRU"></button>
+                <button class="sw" data-hl="249,115,22" title="STABILO ORANYE" aria-label="STABILO ORANYE"></button>
+              </div>
+            </div>
+            <div class="draw-bar" role="toolbar" aria-label="FORMAT TEKS">
+              <select id="fmtFont" aria-label="JENIS HURUF">
+                <option value="">FONT</option>
+                <option value="inter">INTER</option>
+                <option value="arial">ARIAL</option>
+                <option value="georgia">GEORGIA</option>
+                <option value="times">TIMES NEW ROMAN</option>
+                <option value="courier">COURIER NEW</option>
+                <option value="verdana">VERDANA</option>
+                <option value="trebuchet">TREBUCHET MS</option>
+              </select>
+              <div class="pop">
+                <button class="chip" id="fmtWarnaBtn" aria-haspopup="true" aria-expanded="false" title="PILIH WARNA TEKS">WARNA</button>
+                <div class="pop-panel hidden" id="fmtPop" role="group" aria-label="PALET WARNA TEKS">
+                  <button class="sw" data-warna="#2D2654" title="NAVY" aria-label="NAVY"></button>
+                  <button class="sw" data-warna="#6D28D9" title="UNGU" aria-label="UNGU"></button>
+                  <button class="sw" data-warna="#B3261E" title="MERAH" aria-label="MERAH"></button>
+                  <button class="sw" data-warna="#A16207" title="KUNING" aria-label="KUNING"></button>
+                  <button class="sw" data-warna="#15803D" title="HIJAU" aria-label="HIJAU"></button>
+                  <button class="sw" data-warna="#DB2777" title="PINK" aria-label="PINK"></button>
+                  <button class="sw" data-warna="#3A4EFB" title="BIRU" aria-label="BIRU"></button>
+                  <button class="sw" data-warna="#C2410C" title="ORANYE" aria-label="ORANYE"></button>
+                  <button class="sw" data-warna="#111111" title="HITAM" aria-label="HITAM"></button>
+                  <button class="sw" data-warna="#FFFFFF" title="PUTIH" aria-label="PUTIH"></button>
+                  <input type="color" id="fmtCustom" value="#2D2654" title="WARNA BEBAS" aria-label="WARNA BEBAS" />
+                </div>
+              </div>
+              <button class="chip" id="fmtDec" title="KECILKAN HURUF (A MINUS)">A-</button>
+              <button class="chip" id="fmtInc" title="BESARKAN HURUF (A PLUS)">A+</button>
+              <button class="chip" id="fmtB" title="BOLD (TEBAL)" aria-pressed="false"><b>B</b></button>
+              <button class="chip" id="fmtI" title="ITALIC (MIRING)" aria-pressed="false"><i>I</i></button>
+              <button class="chip" id="fmtU" title="UNDERLINE (GARIS BAWAH)" aria-pressed="false"><u>U</u></button>
+            </div>
+            <div class="draw-wrap" id="drawWrap"><canvas id="board" width="1200" height="620"></canvas><div id="stickLayer"></div></div>
+          </section>
+        </div>
+
+        <!-- FOKUS -->
+        <div class="view hidden" id="view-focus">
+          <section class="card">
+            <div class="list-head">
+              <h2>FOKUS POMODORO</h2>
+              <span class="cap">PILIH KARTU, TEKAN MULAI.</span>
+            </div>
+            <iframe class="focus-big" id="focusFrame" title="TIMER POMODORO" src="timer.html"></iframe>
+          </section>
+        </div>
+      </div>
+
+      <footer>TUGASIDE</footer>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
