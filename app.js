@@ -80,15 +80,9 @@ function urutkan(arr) {
   );
 }
 
-let timerToast;
 function toast(pesan) {
-  const t = $("toast");
-  t.textContent = pesan;
-  t.classList.add("show");
-  clearTimeout(timerToast);
-  timerToast = setTimeout(() => t.classList.remove("show"), 2200);
+  tampilToast(pesan);
 }
-
 // ASET AUDIO: BUNYI SELESAI, GAGAL DIMUAT = DIAM
 function bunyi() {
   try {

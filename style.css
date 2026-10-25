@@ -230,3 +230,6 @@ button,input,select,textarea{line-height:normal}
 h1,h2,h3{line-height:normal;font-weight:700}
 h3{margin:1em 0;font-size:1.17em}
 p{margin:1em 0}
+/* Toast Bootstrap memakai bentuk toast lama */
+.toast{width:auto;border:0}
+.toast .toast-body{padding:0}
