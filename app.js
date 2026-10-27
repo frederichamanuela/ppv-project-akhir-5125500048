@@ -734,12 +734,17 @@ function undoBoard() {
 }
 
 $("boardClear").addEventListener("click", () => {
-  if (!confirm("HAPUS SEMUA GAMBAR + STICKY DI PAPAN?")) return;
-  catatRiwayat({ k: "clear", strokes: coretan, nodes: [...layer.children] });
-  coretan = [];
-  gambarUlang();
-  layer.innerHTML = "";
-  toast("PAPAN DIBERSIHKAN.");
+  bukaModal({
+    judul: "HAPUS SEMUA?",
+    isi: "SEMUA GAMBAR DAN STICKY DI PAPAN AKAN DIHAPUS. BISA DIBATALKAN DENGAN CTRL+Z.",
+    onYa: () => {
+      catatRiwayat({ k: "clear", strokes: coretan, nodes: [...layer.children] });
+      coretan = [];
+      gambarUlang();
+      layer.innerHTML = "";
+      toast("PAPAN DIBERSIHKAN.");
+    }
+  });
 });
 
 let terakhirDiedit = null;
