@@ -9,7 +9,26 @@ const inPrioritas = $("inPrioritas");
 const inKet = $("inDesc");
 const selFilter = $("filterStatus");
 
-let tugas = [];
+const KUNCI_TUGAS = "tugaside.tugas";
+
+function simpanTugas() {
+  try {
+    localStorage.setItem(KUNCI_TUGAS, JSON.stringify(tugas));
+  } catch (err) {
+    console.warn("Gagal menyimpan tugas:", err);
+  }
+}
+
+function muatTugas() {
+  try {
+    const data = JSON.parse(localStorage.getItem(KUNCI_TUGAS));
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+let tugas = muatTugas();
 let catatan = [];
 let filter = "semua";
 let catatanAktif = null;
@@ -943,6 +962,7 @@ function render() {
 
       li.querySelector(".t-check").addEventListener("click", () => {
         t.done = !t.done;
+        simpanTugas();
         if (t.done) bunyi();
         toast(t.done ? "TUGAS SELESAI." : "TUGAS DIAKTIFKAN KEMBALI.");
         renderSemua();
@@ -950,6 +970,7 @@ function render() {
 
       li.querySelector(".btn-del").addEventListener("click", () => {
         tugas = tugas.filter((x) => x.id !== t.id);
+        simpanTugas();
         toast("TUGAS DIHAPUS.");
         renderSemua();
       });
@@ -995,6 +1016,7 @@ form.addEventListener("submit", (e) => {
       ket: inKet.value.trim(),
       done: false
     });
+    simpanTugas();
     setLoading(false);
     $("btnSave").disabled = false;
     form.reset();
