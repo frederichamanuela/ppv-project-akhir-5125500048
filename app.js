@@ -1076,7 +1076,9 @@ document.addEventListener("keydown", (e) => {
     toast("FORM DIRESET.");
   }
 
-  if (e.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
+   const aktif = document.activeElement;
+  const lagiMengetik = aktif && (["INPUT", "TEXTAREA", "SELECT"].includes(aktif.tagName) || aktif.isContentEditable);
+  if (e.key === "/" && !lagiMengetik) {
     e.preventDefault();
     pindahTab("tugas");
     setTimeout(() => inNama.focus(), 300);
